@@ -13,8 +13,6 @@
         - Performance Factors (SNR/SCR): Chart.js Line Chart, interactive slider. Goal: Explore Change. Justification: Visualize sensitivity. Data: Illustrative.
         - Tables (MIMO vs PA, Detection Strategies): HTML tables. Goal: Compare/Organize. Justification: Direct data presentation.
         - All other content: Structured text, lists, cards. Goal: Inform. Justification: Readability.
-        - AI-Powered Concept Explainer: Text input, button, and text output. Goal: Inform/Clarify. Justification: Provides on-demand explanations of complex terms using LLM.
-        - AI-Powered Scenario Generator: Form inputs, button, and text output. Goal: Inform/Explore. Justification: Allows users to test parameters and get LLM-generated scenario descriptions.
         - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. All charts are Chart.js canvas. Mathematical notation uses HTML entities/tags.
     -->
     <style>
@@ -45,7 +43,6 @@
                 <div class="hidden md:block">
                     <div id="nav-links" class="ml-10 flex items-baseline space-x-4">
                         <a href="#overview" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-neutral-700">Overview</a>
-                        <a href="#ai-explain" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-neutral-700">AI Explain</a>
                         <a href="#np-basics" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-neutral-700">NP Basics</a>
                         <a href="#mimo-explained" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-neutral-700">MIMO Radar</a>
                         <a href="#np-in-mimo" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-neutral-700">NP in MIMO</a>
@@ -72,7 +69,6 @@
         <div class="md:hidden hidden" id="mobile-menu">
             <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
                 <a href="#overview" class="nav-link block px-3 py-2 rounded-md text-base font-medium text-neutral-700">Overview</a>
-                <a href="#ai-explain" class="nav-link block px-3 py-2 rounded-md text-base font-medium text-neutral-700">AI Explain</a>
                 <a href="#np-basics" class="nav-link block px-3 py-2 rounded-md text-base font-medium text-neutral-700">NP Basics</a>
                 <a href="#mimo-explained" class="nav-link block px-3 py-2 rounded-md text-base font-medium text-neutral-700">MIMO Radar</a>
                 <a href="#np-in-mimo" class="nav-link block px-3 py-2 rounded-md text-base font-medium text-neutral-700">NP in MIMO</a>
@@ -97,27 +93,6 @@
             </div>
         </section>
 
-        <section id="ai-explain" class="content-section">
-            <h2 class="text-3xl font-semibold text-sky-700 mb-6">AI-Powered Concept Explainer ✨</h2>
-            <p class="text-lg mb-4">Struggling with a specific term? Use this AI-powered explainer to get a concise, easy-to-understand definition in the context of radar systems and signal processing.</p>
-            <div class="bg-white p-6 rounded-lg shadow">
-                <h3 class="text-xl font-semibold text-sky-600 mb-3">Explain a Radar Concept</h3>
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-end gap-4 mb-4">
-                    <div class="flex-grow">
-                        <label for="concept-input" class="block text-sm font-medium text-neutral-700 mb-1">Enter a concept (e.g., "Neyman-Pearson Lemma", "Marcum Q-function", "Clutter Modeling"):</label>
-                        <input type="text" id="concept-input" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm" placeholder="Type a concept here...">
-                    </div>
-                    <button id="explain-concept-button" class="px-6 py-2 bg-sky-600 text-white font-semibold rounded-md shadow-md hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 flex-shrink-0">
-                        Explain Concept ✨
-                        <span id="explain-concept-spinner" class="loading-spinner hidden"></span>
-                    </button>
-                </div>
-                <div id="concept-explanation-output" class="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-md text-neutral-700 min-h-[80px] flex items-center justify-center text-center">
-                    Your explanation will appear here.
-                </div>
-            </div>
-        </section>
-
         <section id="np-basics" class="content-section">
             <h2 class="text-3xl font-semibold text-sky-700 mb-6">Neyman-Pearson Criterion Basics</h2>
             <p class="text-lg mb-4">Radar systems detect targets amidst noise and interference, a challenge framed as statistical hypothesis testing. The Neyman-Pearson criterion offers an optimal theoretical framework for this decision-making. This section explains the fundamental concepts essential for understanding radar detection theory.</p>
@@ -135,8 +110,8 @@
                         <li><strong>Miss (False Negative):</strong> Fail to detect target when present.</li>
                         <li><strong>False Alarm (False Positive):</strong> Detect target when absent.</li>
                         <li><strong>Correct Rejection (True Negative):</strong> No target detected when absent.</li>
+                    <li><p class="mt-3">Key probabilities: P<sub>D</sub> (Probability of Detection) = P(H<sub>1</sub>|H<sub>1</sub>), P<sub>FA</sub> (Probability of False Alarm) = P(H<sub>1</sub>|H<sub>0</sub>). Note: P<sub>D</sub> = 1 - P<sub>M</sub> (Probability of Miss).</p></li>
                     </ul>
-                    <p class="mt-3">Key probabilities: P<sub>D</sub> (Probability of Detection) = P(H<sub>1</sub>|H<sub>1</sub>), P<sub>FA</sub> (Probability of False Alarm) = P(H<sub>1</sub>|H<sub>0</sub>). Note: P<sub>D</sub> = 1 - P<sub>M</sub> (Probability of Miss).</p>
                 </div>
                 <div class="bg-white p-6 rounded-lg shadow">
                     <h3 class="text-xl font-semibold text-sky-600 mb-3">1.2 The Neyman-Pearson Lemma</h3>
@@ -272,41 +247,6 @@
                     <canvas id="snrChart"></canvas>
                 </div>
             </div>
-
-            <div class="bg-white p-6 rounded-lg shadow mb-6">
-                <h3 class="text-xl font-semibold text-sky-600 mb-3">MIMO Radar Scenario Generator ✨</h3>
-                <p class="mb-4">Generate a realistic radar detection scenario description based on custom parameters.</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label for="scenario-m" class="block text-sm font-medium text-neutral-700">Transmit Antennas (M):</label>
-                        <input type="number" id="scenario-m" min="1" max="16" value="4" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm">
-                    </div>
-                    <div>
-                        <label for="scenario-n" class="block text-sm font-medium text-neutral-700">Receive Antennas (N):</label>
-                        <input type="number" id="scenario-n" min="1" max="32" value="8" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm">
-                    </div>
-                    <div>
-                        <label for="scenario-snr" class="block text-sm font-medium text-neutral-700">SNR (dB):</label>
-                        <input type="number" id="scenario-snr" min="-10" max="30" value="15" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm">
-                    </div>
-                    <div>
-                        <label for="scenario-clutter" class="block text-sm font-medium text-neutral-700">Clutter Type:</label>
-                        <select id="scenario-clutter" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm">
-                            <option value="Gaussian">Gaussian</option>
-                            <option value="Rayleigh">Rayleigh</option>
-                            <option value="Weibull">Weibull</option>
-                            <option value="K-distributed">K-distributed (e.g., Sea Clutter)</option>
-                        </select>
-                    </div>
-                </div>
-                <button id="generate-scenario-button" class="px-6 py-2 bg-sky-600 text-white font-semibold rounded-md shadow-md hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 w-full sm:w-auto">
-                    Generate Scenario ✨
-                    <span id="generate-scenario-spinner" class="loading-spinner hidden"></span>
-                </button>
-                <div id="scenario-output" class="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-md text-neutral-700 min-h-[120px] flex items-center justify-center text-center">
-                    Your generated scenario will appear here.
-                </div>
-            </div>
             
             <div class="grid md:grid-cols-2 gap-6 mt-6">
                 <div class="bg-white p-6 rounded-lg shadow">
@@ -420,7 +360,6 @@
                                     <td class="px-6 py-4">Constant False Alarm Rate (CFAR)</td>
                                     <td class="px-6 py-4">Adaptive threshold based on noise estimate</td>
                                     <td class="px-6 py-4">Robust to unknown noise; Maintains constant P<sub>FA</sub></td>
-                                    <td class="px-6 py-4">Depends on training cell quality; Sensitive to non-homogeneous clutter</td>
                                 </tr>
                                 <tr>
                                     <td class="px-6 py-4">Bayesian</td>
@@ -721,113 +660,6 @@ document.addEventListener('DOMContentLoaded', function () {
     Chart.defaults.plugins.tooltip.intersect = false;
     Chart.defaults.plugins.title.font = { size: 16, weight: '600' };
     Chart.defaults.font.family = "'Inter', sans-serif";
-
-    // Gemini API Integration - Concept Explainer
-    const conceptInput = document.getElementById('concept-input');
-    const explainConceptButton = document.getElementById('explain-concept-button');
-    const conceptExplanationOutput = document.getElementById('concept-explanation-output');
-    const explainConceptSpinner = document.getElementById('explain-concept-spinner');
-
-    explainConceptButton.addEventListener('click', async () => {
-        const concept = conceptInput.value.trim();
-        if (!concept) {
-            conceptExplanationOutput.textContent = "Please enter a concept to explain.";
-            return;
-        }
-
-        conceptExplanationOutput.textContent = ""; // Clear previous output
-        explainConceptSpinner.classList.remove('hidden'); // Show spinner
-        explainConceptButton.disabled = true; // Disable button
-
-        try {
-            let chatHistory = [];
-            const prompt = `Explain the concept of "${concept}" in the context of radar systems and signal processing, in a concise and easy-to-understand manner. Focus on its relevance to detection probability.`;
-            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-            const payload = { contents: chatHistory };
-            const apiKey = ""; // If you want to use models other than gemini-2.0-flash or imagen-3.0-generate-002, provide an API key here. Otherwise, leave this as-is.
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            const result = await response.json();
-            if (result.candidates && result.candidates.length > 0 &&
-                result.candidates[0].content && result.candidates[0].content.parts &&
-                result.candidates[0].content.parts.length > 0) {
-                const text = result.candidates[0].content.parts[0].text;
-                conceptExplanationOutput.textContent = text;
-            } else {
-                conceptExplanationOutput.textContent = "Could not generate explanation. Please try again or refine your query.";
-                console.error("Gemini API response structure unexpected:", result);
-            }
-        } catch (error) {
-            conceptExplanationOutput.textContent = "An error occurred while fetching the explanation. Please check your network connection or try again.";
-            console.error("Error fetching explanation:", error);
-        } finally {
-            explainConceptSpinner.classList.add('hidden'); // Hide spinner
-            explainConceptButton.disabled = false; // Enable button
-        }
-    });
-
-    // Gemini API Integration - Scenario Generator
-    const scenarioM = document.getElementById('scenario-m');
-    const scenarioN = document.getElementById('scenario-n');
-    const scenarioSnr = document.getElementById('scenario-snr');
-    const scenarioClutter = document.getElementById('scenario-clutter');
-    const generateScenarioButton = document.getElementById('generate-scenario-button');
-    const scenarioOutput = document.getElementById('scenario-output');
-    const generateScenarioSpinner = document.getElementById('generate-scenario-spinner');
-
-    generateScenarioButton.addEventListener('click', async () => {
-        const m = scenarioM.value;
-        const n = scenarioN.value;
-        const snr = scenarioSnr.value;
-        const clutterType = scenarioClutter.value;
-
-        if (!m || !n || !snr || !clutterType) {
-            scenarioOutput.textContent = "Please fill in all scenario parameters.";
-            return;
-        }
-
-        scenarioOutput.textContent = ""; // Clear previous output
-        generateScenarioSpinner.classList.remove('hidden'); // Show spinner
-        generateScenarioButton.disabled = true; // Disable button
-
-        try {
-            let chatHistory = [];
-            const prompt = `Describe a realistic MIMO radar target detection scenario given the following parameters: Transmit Antennas (M): ${m}, Receive Antennas (N): ${n}, Signal-to-Noise Ratio (SNR): ${snr} dB, Clutter Type: ${clutterType}. Explain how these parameters would likely affect the probability of detection (P_D) and false alarm rate (P_FA) in this scenario. Keep the explanation concise and informative.`;
-            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-            const payload = { contents: chatHistory };
-            const apiKey = ""; // If you want to use models other than gemini-2.0-flash or imagen-3.0-generate-002, provide an API key here. Otherwise, leave this as-is.
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            const result = await response.json();
-            if (result.candidates && result.candidates.length > 0 &&
-                result.candidates[0].content && result.candidates[0].content.parts &&
-                result.candidates[0].content.parts.length > 0) {
-                const text = result.candidates[0].content.parts[0].text;
-                scenarioOutput.textContent = text;
-            } else {
-                scenarioOutput.textContent = "Could not generate scenario. Please try again or refine your query.";
-                console.error("Gemini API response structure unexpected:", result);
-            }
-        } catch (error) {
-            scenarioOutput.textContent = "An error occurred while generating the scenario. Please check your network connection or try again.";
-            console.error("Error generating scenario:", error);
-        } finally {
-            generateScenarioSpinner.classList.add('hidden'); // Hide spinner
-            generateScenarioButton.disabled = false; // Enable button
-        }
-    });
 });
 </script>
 </body>
