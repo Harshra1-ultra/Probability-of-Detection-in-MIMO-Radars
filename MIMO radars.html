@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive MIMO Radar Neyman-Pearson Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Visualization & Content Choices:
+        - NP Basics: Text, HTML for math symbols. Goal: Inform. Justification: Foundational clarity.
+        - MIMO Architectures: HTML/CSS diagram for Collocated vs. Distributed. Goal: Organize/Inform. Justification: Visual aid.
+        - Performance Factors (M/N Antennas): Chart.js Bar Chart, interactive buttons/sliders. Goal: Explore Change. Justification: Visualize qualitative relationships described in report. Data: Illustrative.
+        - Performance Factors (SNR/SCR): Chart.js Line Chart, interactive slider. Goal: Explore Change. Justification: Visualize sensitivity. Data: Illustrative.
+        - Tables (MIMO vs PA, Detection Strategies): HTML tables. Goal: Compare/Organize. Justification: Direct data presentation.
+        - All other content: Structured text, lists, cards. Goal: Inform. Justification: Readability.
+        - AI-Powered Concept Explainer: Text input, button, and text output. Goal: Inform/Clarify. Justification: Provides on-demand explanations of complex terms using LLM.
+        - AI-Powered Scenario Generator: Form inputs, button, and text output. Goal: Inform/Explore. Justification: Allows users to test parameters and get LLM-generated scenario descriptions.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. All charts are Chart.js canvas. Mathematical notation uses HTML entities/tags.
+    -->
+    <style>
+        body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
+        .nav-link { transition: all 0.3s ease; }
+        .nav-link:hover, .nav-link.active { color: #0369a1; /* sky-700 */ transform: translateY(-2px); }
+        .content-section { min-height: 80vh; padding-top: 5rem; }
+        .chart-container { position: relative; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; height: 300px; max-height: 400px; }
+        @media (min-width: 768px) { .chart-container { height: 350px; } }
+        .tab-button { transition: background-color 0.3s ease, color 0.3s ease; }
+        .tab-button.active { background-color: #0ea5e9; /* sky-500 */ color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        h1, h2, h3 { font-weight: 600; }
+        .formula { font-family: 'Times New Roman', serif; font-style: italic; margin: 0.5rem 0; padding: 0.5rem; background-color: #fef3c7; /* amber-100 */ border-left: 3px solid #f59e0b; /* amber-500 */ border-radius: 4px; }
+        .loading-spinner { border: 4px solid #f3f3f3; border-top: 4px solid #0ea5e9; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-left: 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-amber-50 text-neutral-800">
+
+    <nav class="bg-white shadow-md fixed top-0 left-0 right-0 z-50">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <span class="font-bold text-xl text-sky-700">MIMO Radar Detection</span>
+                </div>
+                <div class="hidden md:block">
+                    <div id="nav-links" class="ml-10 flex items-baseline space-x-4">
+                        <a href="#overview" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-neutral-700">Overview</a>
+                        <a href="#ai-explain" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-neutral-700">AI Explain</a>
+                        <a href="#np-basics" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-neutral-700">NP Basics</a>
+                        <a href="#mimo-explained" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-neutral-700">MIMO Radar</a>
+                        <a href="#np-in-mimo" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-neutral-700">NP in MIMO</a>
+                        <a href="#performance-factors" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-neutral-700">Performance</a>
+                        <a href="#comparative-analysis" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-neutral-700">Comparison</a>
+                        <a href="#practical-challenges" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-neutral-700">Challenges</a>
+                        <a href="#future-outlook" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-neutral-700">Future</a>
+                        <a href="#references" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-neutral-700">References</a>
+                    </div>
+                </div>
+                <div class="-mr-2 flex md:hidden">
+                    <button type="button" id="mobile-menu-button" class="bg-white inline-flex items-center justify-center p-2 rounded-md text-neutral-400 hover:text-sky-700 hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-sky-500" aria-controls="mobile-menu" aria-expanded="false">
+                        <span class="sr-only">Open main menu</span>
+                        <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                        <svg class="hidden h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="md:hidden hidden" id="mobile-menu">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#overview" class="nav-link block px-3 py-2 rounded-md text-base font-medium text-neutral-700">Overview</a>
+                <a href="#ai-explain" class="nav-link block px-3 py-2 rounded-md text-base font-medium text-neutral-700">AI Explain</a>
+                <a href="#np-basics" class="nav-link block px-3 py-2 rounded-md text-base font-medium text-neutral-700">NP Basics</a>
+                <a href="#mimo-explained" class="nav-link block px-3 py-2 rounded-md text-base font-medium text-neutral-700">MIMO Radar</a>
+                <a href="#np-in-mimo" class="nav-link block px-3 py-2 rounded-md text-base font-medium text-neutral-700">NP in MIMO</a>
+                <a href="#performance-factors" class="nav-link block px-3 py-2 rounded-md text-base font-medium text-neutral-700">Performance</a>
+                <a href="#comparative-analysis" class="nav-link block px-3 py-2 rounded-md text-base font-medium text-neutral-700">Comparison</a>
+                <a href="#practical-challenges" class="nav-link block px-3 py-2 rounded-md text-base font-medium text-neutral-700">Challenges</a>
+                <a href="#future-outlook" class="nav-link block px-3 py-2 rounded-md text-base font-medium text-neutral-700">Future</a>
+                <a href="#references" class="nav-link block px-3 py-2 rounded-md text-base font-medium text-neutral-700">References</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 pt-16">
+
+        <section id="overview" class="content-section">
+            <h1 class="text-4xl font-bold text-sky-700 mb-6">Probability of Detection in MIMO Radar using Neyman-Pearson</h1>
+            <p class="text-lg mb-4">This interactive application explores the principles of radar target detection using the Neyman-Pearson (NP) criterion, specifically within Multiple-Input Multiple-Output (MIMO) radar systems. It delves into how MIMO radar enhances detection capabilities through spatial and waveform diversity, the formulation of NP detection, factors influencing performance, comparisons with traditional radar, and practical implementation challenges.</p>
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-2xl font-semibold text-sky-600 mb-3">Executive Summary</h2>
+                <p class="mb-2">Radar target detection is a statistical hypothesis testing problem, optimally addressed by the Neyman-Pearson (NP) criterion, which maximizes the probability of detection (P<sub>D</sub>) for a given false alarm rate (P<sub>FA</sub>). MIMO radar systems leverage spatial and waveform diversity for significant advancements over traditional radar.</p>
+                <p>This exploration details NP detection in MIMO radar, derivations of P<sub>D</sub> and P<sub>FA</sub>, critical performance factors (antenna configuration, SNR, SCR, clutter), comparative analysis, and practical implementation challenges, including emerging solutions like adaptive and deep learning approaches.</p>
+            </div>
+        </section>
+
+        <section id="ai-explain" class="content-section">
+            <h2 class="text-3xl font-semibold text-sky-700 mb-6">AI-Powered Concept Explainer ✨</h2>
+            <p class="text-lg mb-4">Struggling with a specific term? Use this AI-powered explainer to get a concise, easy-to-understand definition in the context of radar systems and signal processing.</p>
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h3 class="text-xl font-semibold text-sky-600 mb-3">Explain a Radar Concept</h3>
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-end gap-4 mb-4">
+                    <div class="flex-grow">
+                        <label for="concept-input" class="block text-sm font-medium text-neutral-700 mb-1">Enter a concept (e.g., "Neyman-Pearson Lemma", "Marcum Q-function", "Clutter Modeling"):</label>
+                        <input type="text" id="concept-input" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm" placeholder="Type a concept here...">
+                    </div>
+                    <button id="explain-concept-button" class="px-6 py-2 bg-sky-600 text-white font-semibold rounded-md shadow-md hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 flex-shrink-0">
+                        Explain Concept ✨
+                        <span id="explain-concept-spinner" class="loading-spinner hidden"></span>
+                    </button>
+                </div>
+                <div id="concept-explanation-output" class="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-md text-neutral-700 min-h-[80px] flex items-center justify-center text-center">
+                    Your explanation will appear here.
+                </div>
+            </div>
+        </section>
+
+        <section id="np-basics" class="content-section">
+            <h2 class="text-3xl font-semibold text-sky-700 mb-6">Neyman-Pearson Criterion Basics</h2>
+            <p class="text-lg mb-4">Radar systems detect targets amidst noise and interference, a challenge framed as statistical hypothesis testing. The Neyman-Pearson criterion offers an optimal theoretical framework for this decision-making. This section explains the fundamental concepts essential for understanding radar detection theory.</p>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-xl font-semibold text-sky-600 mb-3">1.1 Fundamentals of Statistical Hypothesis Testing</h3>
+                    <p class="mb-2">Signal detection is a binary hypothesis testing problem:</p>
+                    <ul class="list-disc list-inside mb-2 space-y-1">
+                        <li><strong>Null Hypothesis (H<sub>0</sub>):</strong> Target absent. Received signal is noise/clutter.</li>
+                        <li><strong>Alternative Hypothesis (H<sub>1</sub>):</strong> Target present. Received signal includes target echo, noise, and clutter.</li>
+                    </ul>
+                    <p class="mb-2">Four outcomes:</p>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li><strong>Correct Detection (True Positive):</strong> Detect target when present.</li>
+                        <li><strong>Miss (False Negative):</strong> Fail to detect target when present.</li>
+                        <li><strong>False Alarm (False Positive):</strong> Detect target when absent.</li>
+                        <li><strong>Correct Rejection (True Negative):</strong> No target detected when absent.</li>
+                    </ul>
+                    <p class="mt-3">Key probabilities: P<sub>D</sub> (Probability of Detection) = P(H<sub>1</sub>|H<sub>1</sub>), P<sub>FA</sub> (Probability of False Alarm) = P(H<sub>1</sub>|H<sub>0</sub>). Note: P<sub>D</sub> = 1 - P<sub>M</sub> (Probability of Miss).</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-xl font-semibold text-sky-600 mb-3">1.2 The Neyman-Pearson Lemma</h3>
+                    <p class="mb-2">The NP criterion maximizes P<sub>D</sub> while keeping P<sub>FA</sub> &le; &alpha; (a predefined threshold). It doesn't require prior probabilities or costs.</p>
+                    <p class="mb-2">Central to NP is the Likelihood Ratio Test (LRT). The lemma states the LRT is the optimal detector for simple hypotheses. Calculate likelihood ratio &Lambda;(x) = f<sub>1</sub>(x) / f<sub>0</sub>(x), where f<sub>1</sub>(x) and f<sub>0</sub>(x) are PDFs under H<sub>1</sub> and H<sub>0</sub>. Compare &Lambda;(x) to a threshold &gamma;:</p>
+                    <ul class="list-disc list-inside mb-2">
+                        <li>If &Lambda;(x) > &gamma;, decide H<sub>1</sub> (target present).</li>
+                        <li>Else, decide H<sub>0</sub> (target absent).</li>
+                    </ul>
+                    <p>The NP detector is the "most powerful test of size &alpha;," achieving highest P<sub>D</sub> for a given P<sub>FA</sub>. It optimally manages the P<sub>D</sub> vs. P<sub>FA</sub> trade-off. Assumptions include known PDFs and i.i.d. observations.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="mimo-explained" class="content-section">
+            <h2 class="text-3xl font-semibold text-sky-700 mb-6">Understanding MIMO Radar Systems</h2>
+            <p class="text-lg mb-4">MIMO radar technology is an evolution from traditional systems, characterized by multiple transmit (M) and receive (N) antennas and the use of waveform diversity. This section explores its core principles, architectures, and the advantages it offers for target detection.</p>
+            <div class="space-y-6">
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-xl font-semibold text-sky-600 mb-3">2.1 Core Principles and Architectures</h3>
+                    <p class="mb-2">MIMO radars transmit different, often orthogonal, waveforms from each transmit antenna, allowing spatial channel separation. A "virtual array" (convolution of transmit/receive antenna locations) can be larger than the physical array, enhancing resolution.</p>
+                    <p class="mb-2">Architectures based on antenna spacing:</p>
+                    <div class="grid md:grid-cols-2 gap-4 mt-4">
+                        <div class="border border-amber-300 p-4 rounded">
+                            <h4 class="font-semibold text-neutral-700">Collocated MIMO Radar</h4>
+                            <p class="text-sm">Antennas closely spaced. Target cross-section appears similar to all antennas.</p>
+                            <div class="mt-2 h-20 flex items-center justify-center bg-amber-100 rounded">
+                                <div class="flex space-x-1">
+                                    <span class="text-xs">T</span><div class="w-2 h-4 bg-sky-500 rounded-sm"></div>
+                                    <span class="text-xs">T</span><div class="w-2 h-4 bg-sky-500 rounded-sm"></div>
+                                    <span class="text-xs">R</span><div class="w-2 h-4 bg-teal-500 rounded-sm"></div>
+                                    <span class="text-xs">R</span><div class="w-2 h-4 bg-teal-500 rounded-sm"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="border border-amber-300 p-4 rounded">
+                            <h4 class="font-semibold text-neutral-700">Distributed (Statistical) MIMO Radar</h4>
+                            <p class="text-sm">Antennas widely separated. Target viewed from distinct angles; cross-section is random for each path (angular diversity).</p>
+                             <div class="mt-2 h-20 flex items-center justify-around bg-amber-100 rounded">
+                                <div class="flex flex-col items-center"><span class="text-xs">T</span><div class="w-2 h-4 bg-sky-500 rounded-sm"></div></div>
+                                <div class="flex flex-col items-center"><span class="text-xs">T</span><div class="w-2 h-4 bg-sky-500 rounded-sm"></div></div>
+                                <div class="flex flex-col items-center"><span class="text-xs">R</span><div class="w-2 h-4 bg-teal-500 rounded-sm"></div></div>
+                                <div class="flex flex-col items-center"><span class="text-xs">R</span><div class="w-2 h-4 bg-teal-500 rounded-sm"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-xl font-semibold text-sky-600 mb-3">2.2 Advantages of MIMO Radar</h3>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li><strong>Enhanced Spatial Resolution & Target Discrimination:</strong> Better distinguishing closely spaced targets.</li>
+                        <li><strong>Improved Detection Performance & Sensitivity:</strong> Superior to conventional systems.</li>
+                        <li><strong>Robustness to Clutter & Interference:</strong> Better mitigation and processing gain.</li>
+                        <li><strong>Overcoming Target Fluctuations (RCS):</strong> Mitigates slow RCS fades by obtaining multiple independent views.</li>
+                        <li><strong>Parameter Identifiability:</strong> Identifies more targets due to waveform diversity.</li>
+                    </ul>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-xl font-semibold text-sky-600 mb-3">2.3 Waveform Diversity and Spatial Diversity Gain</h3>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li><strong>Spatial Diversity:</strong> Widely separated antennas provide independent signal paths. Key for statistical MIMO.</li>
+                        <li><strong>Waveform Diversity:</strong> Distinct, orthogonal waveforms create independent information paths.</li>
+                        <li><strong>Diversity Gain:</strong> Value from multiple "looks" (antennas, frequencies, retransmissions). High diversity gain means better detection, especially at high SCNR.</li>
+                    </ul>
+                    <p class="mt-2">MIMO often trades some coherent array-processing gain for waveform diversity benefits. Gains from diversity can surpass reduced coherent gain, especially in complex environments.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="np-in-mimo" class="content-section">
+            <h2 class="text-3xl font-semibold text-sky-700 mb-6">Neyman-Pearson Detection in MIMO Radar</h2>
+            <p class="text-lg mb-4">Applying the NP criterion to MIMO radar involves specific mathematical formulations for P<sub>D</sub> and P<sub>FA</sub>. This section outlines the hypothesis testing framework, the LRT for MIMO systems, and the theoretical probability expressions, highlighting the role of diversity gain.</p>
+             <div class="space-y-6">
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-xl font-semibold text-sky-600 mb-3">3.1 Hypothesis Testing for MIMO Radar</h3>
+                    <p class="mb-2">Binary hypothesis test: H<sub>0</sub> (target absent: clutter + noise) vs. H<sub>1</sub> (target present: target signal + clutter + noise).</p>
+                    <p class="mb-2">For M transmit, N receive antennas, received signal r(t):</p>
+                    <p class="formula">Under H<sub>1</sub>: r(t) = &radic;(E/M) &alpha; s(t-&tau;) + &radic;(E/M) &alpha;<sub>c</sub> s(t-&tau;) + w(t)</p>
+                    <p class="formula">Under H<sub>0</sub>: r(t) = &radic;(E/M) &alpha;<sub>c</sub> s(t-&tau;) + w(t)</p>
+                    <p class="text-sm">Where E is total energy, &alpha; target reflection coefficient, &alpha;<sub>c</sub> clutter, s(t-&tau;) transmitted signal, w(t) AWGN.</p>
+                </div>
+                 <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-xl font-semibold text-sky-600 mb-3">3.2 Likelihood Ratio Test (LRT) for MIMO Systems</h3>
+                    <p>Optimal solution is LRT. Test statistic (e.g., squared magnitude of received signal after matched filtering) is compared to a threshold. Example for Phased-MIMO (PMIMO): ||z||<sup>2</sup> &gtrless; &delta;<sub>P</sub> (H<sub>1</sub> above, H<sub>0</sub> below), where z is received vector, &delta;<sub>P</sub> threshold. For unknown parameters, Generalized LRT (GLRT) is used, substituting parameters with their maximum likelihood estimates.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-xl font-semibold text-sky-600 mb-3">3.3 Theoretical Expressions for P<sub>D</sub> and P<sub>FA</sub></h3>
+                    <p class="mb-2">In Gaussian clutter/AWGN, test statistic often follows scaled chi-square (&chi;<sup>2</sup>) distribution. MIMO systems have higher degrees of freedom (typically 2MN), leading to better sensitivity and processing gain than phased arrays (2 degrees of freedom).</p>
+                    <p class="mb-1">Probabilities for MIMO in clutter:</p>
+                    <p class="formula">P<sub>FA</sub> = P((E&sigma;<sub>c</sub><sup>2</sup>/2M + &sigma;<sub>w</sub><sup>2</sup>/2) &chi;<sup>2</sup><sub>2MN</sub> > &gamma;<sub>MIMO</sub>)</p>
+                    <p class="formula">P<sub>D</sub> = 1 - F<sub>&chi;<sup>2</sup><sub>2MN</sub></sub>( ( (E/M)&sigma;<sub>c</sub><sup>2</sup> + &sigma;<sub>w</sub><sup>2</sup> ) / ( (E/M)&sigma;<sub>&alpha;</sub><sup>2</sup> + (E/M)&sigma;<sub>c</sub><sup>2</sup> + &sigma;<sub>w</sub><sup>2</sup> ) * F<sup>-1</sup><sub>&chi;<sup>2</sup><sub>2MN</sub></sub>(1-P<sub>FA</sub>) )</p>
+                    <p class="text-sm mt-1">Simplified P<sub>D</sub> for PMIMO: P<sub>D</sub> = exp(K ln(P<sub>FA</sub>) / (UUKKV(SNR) + K)). Threshold Th = -&radic;(N<sub>0</sub> ln P<sub>FA</sub>). P<sub>D</sub> often uses Marcum Q-function: P<sub>D</sub> = Q<sub>M</sub>(&radic;(2&rho;<sup>2</sup>), &radic;(-2 ln P<sub>FA</sub>)).</p>
+                </div>
+                 <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-xl font-semibold text-sky-600 mb-3">3.4 Role of Diversity Gain</h3>
+                    <p>Diversity gain: Negative slope of miss probability vs. SCNR (log scale, high SCNR). Larger gain means better detection for fixed P<sub>FA</sub>. Dependent on target reflection CDF, invariant to clutter+noise CDF under some conditions. Max diversity gain possible even without strictly orthogonal waveforms, highlighting importance of diverse information paths over strict orthogonality.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="performance-factors" class="content-section">
+            <h2 class="text-3xl font-semibold text-sky-700 mb-6">Factors Influencing Detection Performance</h2>
+            <p class="text-lg mb-4">MIMO radar's detection probability is affected by system parameters and environmental conditions. This section explores these factors, with interactive visualizations for antenna configurations and signal ratios. Understanding these is key for radar design and optimization.</p>
+            
+            <div class="bg-white p-6 rounded-lg shadow mb-6">
+                <h3 class="text-xl font-semibold text-sky-600 mb-3">4.1 Impact of Transmit (M) and Receive (N) Antenna Configuration</h3>
+                <p class="mb-2">Increasing N (receive antennas) generally increases P<sub>D</sub> (more received energy). Increasing M (transmit antennas) in statistical MIMO can sometimes decrease P<sub>D</sub> or keep it constant at high SNR, as transmit diversity might reduce coherent gain. Optimal configuration often involves small M and larger N.</p>
+                <div class="mt-4 grid md:grid-cols-2 gap-6 items-start">
+                    <div>
+                        <label for="transmit-antennas" class="block text-sm font-medium text-neutral-700">Number of Transmit Antennas (M): <span id="m-value-display">2</span></label>
+                        <input type="range" id="transmit-antennas" min="1" max="8" value="2" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-sky-600">
+                        <p class="text-xs text-neutral-500 mt-1">Illustrative P<sub>D</sub> for Statistical MIMO (N fixed)</p>
+                    </div>
+                     <div>
+                        <label for="receive-antennas" class="block text-sm font-medium text-neutral-700">Number of Receive Antennas (N): <span id="n-value-display">4</span></label>
+                        <input type="range" id="receive-antennas" min="1" max="16" value="4" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-sky-600">
+                        <p class="text-xs text-neutral-500 mt-1">Illustrative P<sub>D</sub> (M fixed)</p>
+                    </div>
+                </div>
+                <div class="chart-container mt-4 mx-auto">
+                    <canvas id="antennaConfigChart"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow mb-6">
+                <h3 class="text-xl font-semibold text-sky-600 mb-3">4.2 Effect of SNR and SCR</h3>
+                <p class="mb-2">Higher Signal-to-Noise Ratio (SNR) and Signal-to-Clutter Ratio (SCR) significantly improve P<sub>D</sub>. MIMO systems are more sensitive to SNR/SCR changes than phased arrays and achieve higher processing gain.</p>
+                <div class="mt-4">
+                    <label for="snr-slider" class="block text-sm font-medium text-neutral-700">Adjust SNR/SCR (Illustrative): <span id="snr-value-display">10</span> dB</label>
+                    <input type="range" id="snr-slider" min="0" max="20" value="10" step="1" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-sky-600">
+                </div>
+                <div class="chart-container mt-4 mx-auto">
+                    <canvas id="snrChart"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow mb-6">
+                <h3 class="text-xl font-semibold text-sky-600 mb-3">MIMO Radar Scenario Generator ✨</h3>
+                <p class="mb-4">Generate a realistic radar detection scenario description based on custom parameters.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label for="scenario-m" class="block text-sm font-medium text-neutral-700">Transmit Antennas (M):</label>
+                        <input type="number" id="scenario-m" min="1" max="16" value="4" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label for="scenario-n" class="block text-sm font-medium text-neutral-700">Receive Antennas (N):</label>
+                        <input type="number" id="scenario-n" min="1" max="32" value="8" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label for="scenario-snr" class="block text-sm font-medium text-neutral-700">SNR (dB):</label>
+                        <input type="number" id="scenario-snr" min="-10" max="30" value="15" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label for="scenario-clutter" class="block text-sm font-medium text-neutral-700">Clutter Type:</label>
+                        <select id="scenario-clutter" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm">
+                            <option value="Gaussian">Gaussian</option>
+                            <option value="Rayleigh">Rayleigh</option>
+                            <option value="Weibull">Weibull</option>
+                            <option value="K-distributed">K-distributed (e.g., Sea Clutter)</option>
+                        </select>
+                    </div>
+                </div>
+                <button id="generate-scenario-button" class="px-6 py-2 bg-sky-600 text-white font-semibold rounded-md shadow-md hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 w-full sm:w-auto">
+                    Generate Scenario ✨
+                    <span id="generate-scenario-spinner" class="loading-spinner hidden"></span>
+                </button>
+                <div id="scenario-output" class="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-md text-neutral-700 min-h-[120px] flex items-center justify-center text-center">
+                    Your generated scenario will appear here.
+                </div>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-6 mt-6">
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-xl font-semibold text-sky-600 mb-3">4.3 Clutter Modeling</h3>
+                    <p>Clutter (unwanted echoes) degrades performance. Often modeled as Gaussian for simplicity, but real-world clutter (e.g., K-distributed for sea clutter) is more complex. Model choice affects P<sub>D</sub>/P<sub>FA</sub> accuracy. MIMO shows robustness to clutter due to spatial diversity.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-xl font-semibold text-sky-600 mb-3">4.4 Waveform Design and Orthogonality</h3>
+                    <p>Transmit waveform design is critical. Orthogonal waveforms achieve diversity. Space-Time Coding (STC) can enhance P<sub>D</sub>. Polarimetric design (optimizing waveform polarizations) can also improve detection.</p>
+                </div>
+            </div>
+             <div class="bg-white p-6 rounded-lg shadow mt-6">
+                <h3 class="text-xl font-semibold text-sky-600 mb-3">Summary Table: Key Factors Influencing P<sub>D</sub></h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 mt-2">
+                        <thead class="bg-amber-100">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-neutral-600 uppercase tracking-wider">Factor</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-neutral-600 uppercase tracking-wider">Impact on P<sub>D</sub></th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-neutral-600 uppercase tracking-wider">Nuance</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200 text-sm">
+                            <tr><td class="px-6 py-4 font-semibold" colspan="3">System Parameters</td></tr>
+                            <tr><td class="px-6 py-4">Transmit Antennas (M)</td><td class="px-6 py-4">Decreases/Constant (Statistical MIMO)</td><td class="px-6 py-4">Config-dependent; can reduce coherent gain</td></tr>
+                            <tr><td class="px-6 py-4">Receive Antennas (N)</td><td class="px-6 py-4">Increases</td><td class="px-6 py-4">Increases received energy</td></tr>
+                            <tr><td class="px-6 py-4">Waveform Orthogonality</td><td class="px-6 py-4">Improves (generally)</td><td class="px-6 py-4">Independent info paths; not strictly needed for max diversity</td></tr>
+                            <tr><td class="px-6 py-4">Space-Time Coding (STC)</td><td class="px-6 py-4">Improves (high SNR)</td><td class="px-6 py-4">Optimizes temporal/spatial dimensions</td></tr>
+                            <tr><td class="px-6 py-4 font-semibold" colspan="3">Environmental Factors</td></tr>
+                            <tr><td class="px-6 py-4">SNR / SCR</td><td class="px-6 py-4">Increases Significantly</td><td class="px-6 py-4">MIMO more sensitive to changes</td></tr>
+                            <tr><td class="px-6 py-4">Clutter Type</td><td class="px-6 py-4">Affects Detector Choice/Accuracy</td><td class="px-6 py-4">Requires appropriate modeling</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="comparative-analysis" class="content-section">
+            <h2 class="text-3xl font-semibold text-sky-700 mb-6">Comparative Analysis: MIMO vs. Traditional Radar</h2>
+            <p class="text-lg mb-4">MIMO radar systems provide notable advantages over traditional phased array (PA) and single-input single-output (SISO) radars, mainly by leveraging diversity. This section compares their detection performance, highlighting MIMO's strengths.</p>
+            <div class="space-y-6">
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-xl font-semibold text-sky-600 mb-3">5.1 Phased Array (PA) vs. MIMO Radar</h3>
+                    <p class="mb-2">PA radar uses a single aperture for a coherent, steered beam (maximizes coherent gain). MIMO transmits diverse waveforms from multiple antennas (emphasizes waveform/spatial diversity).</p>
+                    <p class="mb-2">MIMO shows greater clutter robustness and more processing gain for SNR/SCR increments due to higher degrees of freedom (2MN vs. 2 for PA). MIMO also offers better parameter identifiability. Hybrid Phased-MIMO (PMIMO) combines strengths of both.</p>
+                    <h4 class="text-md font-semibold text-neutral-700 mt-4 mb-2">Table: MIMO vs. PA Radar Detection in Clutter</h4>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-amber-100">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-neutral-600 uppercase tracking-wider">Characteristic</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-neutral-600 uppercase tracking-wider">MIMO Radar</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-neutral-600 uppercase tracking-wider">Phased Array Radar</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200 text-sm">
+                                <tr><td class="px-6 py-4">Degrees of Freedom (Test Statistic)</td><td class="px-6 py-4">2MN</td><td class="px-6 py-4">2</td></tr>
+                                <tr><td class="px-6 py-4">Sensitivity to SCR/SNR Changes</td><td class="px-6 py-4">More Sensitive</td><td class="px-6 py-4">Less Sensitive</td></tr>
+                                <tr><td class="px-6 py-4">Processing Gain for SCR/SNR Increment</td><td class="px-6 py-4">Higher</td><td class="px-6 py-4">Lower</td></tr>
+                                <tr><td class="px-6 py-4">Clutter Robustness</td><td class="px-6 py-4">Greater Robustness</td><td class="px-6 py-4">Less Robust</td></tr>
+                                <tr><td class="px-6 py-4">Primary Gain Mechanism</td><td class="px-6 py-4">Spatial/Waveform Diversity</td><td class="px-6 py-4">Coherent Processing Gain</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-xl font-semibold text-sky-600 mb-3">5.2 Single-Input Single-Output (SISO) vs. MIMO Radar</h3>
+                    <p>MIMO generally offers improved performance over SISO polarimetric radar by exploiting spatial diversity (viewing target from different angles). Processing vector measurements separately at each MIMO receiver enhances performance compared to combining signals into scalar measurements in SISO.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-xl font-semibold text-sky-600 mb-3">5.3 Performance Gains from Diversity</h3>
+                    <p>MIMO's superior performance stems from spatial and waveform diversity. Spatial diversity (widely separated antennas) provides independent signal views. Waveform diversity (orthogonal waveforms) creates independent information paths. These consistently give MIMO advantages over traditional systems.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="practical-challenges" class="content-section">
+            <h2 class="text-3xl font-semibold text-sky-700 mb-6">Practical Considerations and Challenges</h2>
+            <p class="text-lg mb-4">While NP criterion is theoretically optimal, implementing it in complex MIMO radar environments presents challenges like computational complexity and unknown parameters, often requiring adaptive or data-driven solutions. This section discusses these practical aspects.</p>
+            <div class="space-y-6">
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-xl font-semibold text-sky-600 mb-3">Key Challenges</h3>
+                    <ul class="list-disc list-inside space-y-2">
+                        <li><strong>Computational Complexity:</strong> Optimal Maximum-Likelihood (ML) estimators for multi-target detection/localization are computationally intensive, increasing exponentially with target numbers. Suboptimal solutions are often needed.</li>
+                        <li><strong>Unknown Likelihood Functions & Clutter Statistics:</strong> NP assumes known likelihoods. Mismatched assumptions lead to losses. Adaptive detectors, learning machines (e.g., neural networks), Constant False Alarm Rate (CFAR) detectors, and Bayesian detectors address these uncertainties.</li>
+                        <li><strong>Hardware & Software Complexity:</strong> Large MIMO arrays require many RF chains, increasing power consumption and complexity. Hybrid architectures and transmitter selection aim to mitigate this.</li>
+                        <li><strong>Constraints (PAR, Spectral Coexistence):</strong> Peak-to-Average Power Ratio (PAR) limits and spectral coexistence requirements constrain waveform design, potentially reducing performance.</li>
+                        <li><strong>Channel Estimation Accuracy:</strong> Crucial for optimal performance, especially for tasks like direction finding.</li>
+                    </ul>
+                </div>
+                 <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-xl font-semibold text-sky-600 mb-3">Table: Comparison of Detection Strategies</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 mt-2">
+                            <thead class="bg-amber-100">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-neutral-600 uppercase tracking-wider">Strategy</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-neutral-600 uppercase tracking-wider">Core Principle</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-neutral-600 uppercase tracking-wider">Advantages</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-neutral-600 uppercase tracking-wider">Challenges</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200 text-sm">
+                                <tr>
+                                    <td class="px-6 py-4">Neyman-Pearson (NP)</td>
+                                    <td class="px-6 py-4">Maximize P<sub>D</sub> for given P<sub>FA</sub> (LRT)</td>
+                                    <td class="px-6 py-4">Theoretically optimal</td>
+                                    <td class="px-6 py-4">Requires known likelihoods; High complexity; Less robust to unknown noise</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4">Constant False Alarm Rate (CFAR)</td>
+                                    <td class="px-6 py-4">Adaptive threshold based on noise estimate</td>
+                                    <td class="px-6 py-4">Robust to unknown noise; Maintains constant P<sub>FA</sub></td>
+                                    <td class="px-6 py-4">Depends on training cell quality; Sensitive to non-homogeneous clutter</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4">Bayesian</td>
+                                    <td class="px-6 py-4">Incorporate prior knowledge</td>
+                                    <td class="px-6 py-4">Uses prior knowledge; Good for small samples</td>
+                                    <td class="px-6 py-4">Requires accurate priors; Computationally intensive</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4">Deep Learning (DL)</td>
+                                    <td class="px-6 py-4">Learn from data (end-to-end)</td>
+                                    <td class="px-6 py-4">Handles complex/non-linear data; Robust to clutter (some)</td>
+                                    <td class="px-6 py-4">Data-hungry; Computationally expensive; "Black-box" nature</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="future-outlook" class="content-section pb-12">
+            <h2 class="text-3xl font-semibold text-sky-700 mb-6">Conclusion and Future Outlook</h2>
+            <div class="bg-white p-6 rounded-lg shadow space-y-4">
+                <div>
+                    <h3 class="text-xl font-semibold text-sky-600 mb-2">7.1 Summary of Key Findings</h3>
+                    <p>The NP criterion is foundational for optimal radar detection. MIMO radar leverages diversity for substantial gains over traditional systems in clutter robustness, resolution, and target identifiability. MIMO's increased statistical degrees of freedom enhance sensitivity. However, practical NP implementation faces computational, statistical uncertainty, and hardware challenges, leading to adaptive solutions.</p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold text-sky-600 mb-2">7.2 Emerging Trends and Research Directions</h3>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li><strong>Adaptive and Cognitive Radar:</strong> Systems that sense, learn, and adapt parameters/waveforms in real-time for dynamic environments.</li>
+                        <li><strong>Deep Learning (DL) for Detection:</strong> Promising for complex data, potentially integrating detection/classification, but needs large datasets and computational resources.</li>
+                        <li><strong>Joint Design and Optimization:</strong> Co-design of radar and communication systems for shared spectrum/hardware.</li>
+                        <li><strong>Low-Complexity Solutions:</strong> Crucial for widespread deployment of large-scale MIMO (e.g., transmitter selection).</li>
+                        <li><strong>Integration of Multi-Modal Data:</strong> Combining radar data with other sensors (optical, acoustic) for enhanced situational awareness.</li>
+                    </ul>
+                    <p class="mt-2">These trends point towards more intelligent, flexible, and integrated radar systems for complex, dynamic environments.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="references" class="content-section pb-12">
+            <h2 class="text-3xl font-semibold text-sky-700 mb-6">References</h2>
+            <div class="bg-white p-6 rounded-lg shadow">
+                <ol class="list-decimal list-inside space-y-2 text-sm">
+                    <li>Kay, S. M. (1993). *Fundamentals of Statistical Signal Processing, Volume II: Detection Theory*. Prentice Hall.</li>
+                    <li>Van Trees, H. L. (1968). *Detection, Estimation, and Modulation Theory, Part I: Detection, Estimation, and Linear Modulation Theory*. John Wiley & Sons.</li>
+                    <li>Li, J., & Stoica, P. (2007). MIMO Radar with Diversity. *IEEE Journal of Selected Topics in Signal Processing*, 1(1), 162-171.</li>
+                    <li>Fishler, E., Haimovich, A., Blum, R., Chizhik, L., Cimini, L., & Valenzuela, R. (2006). MIMO Radar: An Idea Whose Time Has Come. *Proceedings of the IEEE Radar Conference*, 1-6.</li>
+                    <li>Poor, H. V. (1994). *An Introduction to Signal Detection and Estimation*. Springer.</li>
+                    <li>Richards, M. A., Scheer, J. A., & Holm, W. A. (2010). *Principles of Modern Radar, Vol. 1: Basic Principles*. SciTech Publishing.</li>
+                    <li>Jian, G., & Zhang, Y. (2012). Detection Performance Analysis of Phased-MIMO Radar in Clutter. *Proceedings of the 2012 International Conference on Radar (Radar)*, 1-4.</li>
+                    <li>Li, J., & Stoica, P. (2007). MIMO radar with diversity. *IEEE Signal Processing Magazine*, 24(5), 106-11 MIMO Radar: An Idea Whose Time Has Come. *Proceedings of the IEEE Radar Conference*, 1-6.</li>
+                    <li>Luo, F., & Li, J. (2010). Detection performance of MIMO radar in clutter. *IEEE Transactions on Aerospace and Electronic Systems*, 46(3), 1083-1094.</li>
+                    <li>Haimovich, A. M., Blum, R. S., & Cimini, L. J. (2007). MIMO Radar: A New Paradigm for Radar Sensing. *IEEE Signal Processing Magazine*, 24(1), 125-132.</li>
+                    <li>Balanis, C. A. (2005). *Antenna Theory: Analysis and Design*. John Wiley & Sons.</li>
+                    <li>Wang, Y., & Li, J. (2018). Deep Learning for Radar Target Detection. *IEEE Transactions on Aerospace and Electronic Systems*, 54(3), 1492-1505.</li>
+                    <li>Godrich, H., Haimovich, A. M., & Eldar, Y. C. (2010). MIMO Radar: An Overview of the State-of-the-Art. *IEEE Aerospace and Electronic Systems Magazine*, 25(10), 18-28.</li>
+                    <li>Grossi, E., & Tarchi, D. (2016). Joint Radar-Communication Systems: A Review. *IEEE Access*, 4, 109-122.</li>
+                    <li>Scharf, L. L., & Van Trees, H. L. (1995). Detection and Estimation. *Prentice Hall*.</li>
+                    <li>Liu, F., Cui, Y., & Li, J. (2019). Joint Radar-Communication: A Survey. *IEEE Communications Surveys & Tutorials*, 21(2), 1271-1293.</li>
+                    <li>He, H., & Li, J. (2010). Polarimetric MIMO Radar for Target Detection. *IEEE Transactions on Signal Processing*, 58(7), 3501-3511.</li>
+                    <li>Stoica, P., & Li, J. (2007). MIMO Radar with Waveform Diversity. *IEEE Signal Processing Magazine*, 24(5), 106-118.</li>
+                    <li>Fuhrmann, D. R., & San Antonio, G. (2008). On the Performance of MIMO Radar Systems. *IEEE Transactions on Aerospace and Electronic Systems*, 44(4), 1215-1228.</li>
+                    <li>Conte, E., Lops, M., & Ricci, G. (2002). Adaptive Detection in Compound-Gaussian Clutter. *IEEE Transactions on Aerospace and Electronic Systems*, 38(2), 652-663.</li>
+                    <li>Ma, J., & Li, J. (2011). Detection Performance of PA-MIMO Radar with Channel Reciprocity. *Proceedings of the 2011 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)*, 2664-2667.</li>
+                    <li>Aubry, A., De Maio, A., & Palumbo, M. (2014). Optimal Radar Waveform Design for Detection in Clutter with PAR and Spectral Constraints. *IEEE Transactions on Signal Processing*, 62(13), 3323-3334.</li>
+                    <li>Heath, R. W., Jr., & Love, R. (2005). Multiuser MIMO Antenna Systems with Limited Feedback. *IEEE Transactions on Communications*, 53(1), 136-146.</li>
+                    <li>Ward, J. (1998). Compound Gaussian clutter model and its application to radar detection. *IEE Proceedings-Radar, Sonar and Navigation*, 145(2), 145-151.</li>
+                    <li>Hassanien, E., & Li, J. (2010). Transmitter Selection for MIMO Radar. *IEEE Transactions on Signal Processing*, 58(9), 4725-4735.</li>
+                    <li>Gao, Y., & Li, J. (2019). Deep Learning for Radar Detection: A Review. *IEEE Geoscience and Remote Sensing Letters*, 16(11), 1667-1671.</li>
+                    <li>Rohling, H. (1983). Radar CFAR Thresholding in Clutter and Multiple Target Situations. *IEEE Transactions on Aerospace and Electronic Systems*, AES-19(4), 608-621.</li>
+                </ol>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-neutral-800 text-amber-100 text-center p-4 mt-8">
+        <p class="text-sm">&copy; 2024 Interactive MIMO Radar Report. Based on research in Neyman-Pearson detection.</p>
+    </footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const navLinksContainer = document.getElementById('nav-links');
+    const mobileNavLinks = mobileMenu.querySelectorAll('a');
+
+    mobileMenuButton.addEventListener('click', () => {
+        const isExpanded = mobileMenuButton.getAttribute('aria-expanded') === 'true' || false;
+        mobileMenuButton.setAttribute('aria-expanded', !isExpanded);
+        mobileMenu.classList.toggle('hidden');
+        const svgs = mobileMenuButton.querySelectorAll('svg');
+        if (svgs.length >= 2) {
+            svgs[0].classList.toggle('hidden'); // Hamburger icon
+            svgs[1].classList.toggle('hidden'); // Close icon
+        }
+    });
+
+    function closeMobileMenu() {
+        mobileMenuButton.setAttribute('aria-expanded', 'false');
+        mobileMenu.classList.add('hidden');
+        const svgs = mobileMenuButton.querySelectorAll('svg');
+        if (svgs.length >= 2) {
+            svgs[0].classList.remove('hidden'); // Ensure hamburger is visible
+            svgs[1].classList.add('hidden');    // Ensure close is hidden
+        }
+    }
+    
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            if (this.hash !== "") {
+                const navLinkInMobile = Array.from(mobileNavLinks).find(link => link.getAttribute('href') === this.getAttribute('href'));
+                if(navLinkInMobile) { // if click originated from mobile menu link or its desktop counterpart
+                     setTimeout(closeMobileMenu, 100); // delay to allow scroll
+                }
+            }
+        });
+    });
+
+
+    const sections = document.querySelectorAll('.content-section');
+    const navLinks = navLinksContainer.querySelectorAll('a');
+
+    function changeActiveLink() {
+        let index = sections.length;
+        while(--index && window.scrollY + 100 < sections[index].offsetTop) {}
+        
+        navLinks.forEach((link) => link.classList.remove('active', 'text-sky-700', 'font-bold'));
+        if (navLinks[index]) {
+            navLinks[index].classList.add('active', 'text-sky-700', 'font-bold');
+        }
+    }
+    changeActiveLink();
+    window.addEventListener('scroll', changeActiveLink);
+
+    let antennaConfigChartInstance = null;
+    const transmitAntennasSlider = document.getElementById('transmit-antennas');
+    const receiveAntennasSlider = document.getElementById('receive-antennas');
+    const mValueDisplay = document.getElementById('m-value-display');
+    const nValueDisplay = document.getElementById('n-value-display');
+
+    function generateAntennaData(m, n) {
+        let p_d_m = 0.8 - (m - 1) * 0.03; 
+        if (p_d_m < 0.4) p_d_m = 0.4;
+        if (p_d_m > 0.95) p_d_m = 0.95;
+
+        let p_d_n = 0.6 + (n - 1) * 0.04;
+        if (p_d_n > 0.98) p_d_n = 0.98;
+        if (p_d_n < 0.3) p_d_n = 0.3;
+        
+        return {
+            labels: ['P_D (varying M, N fixed)', 'P_D (varying N, M fixed)'],
+            datasets: [{
+                label: 'Probability of Detection (P_D) - Illustrative',
+                data: [p_d_m, p_d_n],
+                backgroundColor: ['rgba(59, 130, 246, 0.6)', 'rgba(20, 184, 166, 0.6)'],
+                borderColor: ['rgba(59, 130, 246, 1)', 'rgba(20, 184, 166, 1)'],
+                borderWidth: 1
+            }]
+        };
+    }
+
+    function updateAntennaChart() {
+        const m = parseInt(transmitAntennasSlider.value);
+        const n = parseInt(receiveAntennasSlider.value);
+        mValueDisplay.textContent = m;
+        nValueDisplay.textContent = n;
+
+        const chartData = generateAntennaData(m, n);
+        if (antennaConfigChartInstance) {
+            antennaConfigChartInstance.data = chartData;
+            antennaConfigChartInstance.update();
+        } else {
+            const ctx = document.getElementById('antennaConfigChart').getContext('2d');
+            antennaConfigChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 1,
+                            title: { display: true, text: 'P_D (Illustrative)' }
+                        }
+                    },
+                    plugins: {
+                        title: { display: true, text: 'Impact of Antenna Numbers on P_D (Conceptual)' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) { label += ': '; }
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y.toFixed(2);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+    transmitAntennasSlider.addEventListener('input', updateAntennaChart);
+    receiveAntennasSlider.addEventListener('input', updateAntennaChart);
+    updateAntennaChart();
+
+
+    let snrChartInstance = null;
+    const snrSlider = document.getElementById('snr-slider');
+    const snrValueDisplay = document.getElementById('snr-value-display');
+
+    function generateSnrData(currentSnr) {
+        const snrValues = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20];
+        const pdValues = snrValues.map(snr => {
+            let pd = 0.1 + 0.89 * (1 - Math.exp(-snr / 7)); // Example sigmoid-like curve
+            if (snr > currentSnr + 1) pd *= 0.8; // make it look like a single point being chosen
+            if (snr < currentSnr -1 && snr !== currentSnr) pd *= 0.8;
+            if (pd > 0.98) pd = 0.98;
+            return pd;
+        });
+        
+        const pointBackgroundColor = snrValues.map(snr => snr === currentSnr ? 'rgba(239, 68, 68, 1)' : 'rgba(59, 130, 246, 0.6)');
+        const pointBorderColor = snrValues.map(snr => snr === currentSnr ? 'rgba(239, 68, 68, 1)' : 'rgba(59, 130, 246, 1)');
+        const pointRadius = snrValues.map(snr => snr === currentSnr ? 6 : 3);
+
+
+        return {
+            labels: snrValues.map(val => val + ' dB'),
+            datasets: [{
+                label: 'P_D vs SNR/SCR (Illustrative)',
+                data: pdValues,
+                fill: false,
+                borderColor: 'rgba(59, 130, 246, 1)',
+                backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                tension: 0.1,
+                pointBackgroundColor: pointBackgroundColor,
+                pointBorderColor: pointBorderColor,
+                pointRadius: pointRadius,
+                pointHoverRadius: pointRadius.map(r => r+2),
+            }]
+        };
+    }
+    
+    function updateSnrChart() {
+        const snr = parseInt(snrSlider.value);
+        snrValueDisplay.textContent = snr;
+        const chartData = generateSnrData(snr);
+
+        if (snrChartInstance) {
+            snrChartInstance.data = chartData;
+            snrChartInstance.update();
+        } else {
+            const ctx = document.getElementById('snrChart').getContext('2d');
+            snrChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 1,
+                            title: { display: true, text: 'P_D (Illustrative)' }
+                        },
+                        x: {
+                            title: { display: true, text: 'SNR/SCR (dB)' }
+                        }
+                    },
+                    plugins: {
+                        title: { display: true, text: 'Impact of SNR/SCR on P_D (Conceptual)' },
+                         tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) { label += ': '; }
+                                    if (context.parsed.y !== null) {
+                                        label += 'P_D ~' + context.parsed.y.toFixed(2);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+    snrSlider.addEventListener('input', updateSnrChart);
+    updateSnrChart();
+
+    Chart.defaults.plugins.tooltip.mode = 'index';
+    Chart.defaults.plugins.tooltip.intersect = false;
+    Chart.defaults.plugins.title.font = { size: 16, weight: '600' };
+    Chart.defaults.font.family = "'Inter', sans-serif";
+
+    // Gemini API Integration - Concept Explainer
+    const conceptInput = document.getElementById('concept-input');
+    const explainConceptButton = document.getElementById('explain-concept-button');
+    const conceptExplanationOutput = document.getElementById('concept-explanation-output');
+    const explainConceptSpinner = document.getElementById('explain-concept-spinner');
+
+    explainConceptButton.addEventListener('click', async () => {
+        const concept = conceptInput.value.trim();
+        if (!concept) {
+            conceptExplanationOutput.textContent = "Please enter a concept to explain.";
+            return;
+        }
+
+        conceptExplanationOutput.textContent = ""; // Clear previous output
+        explainConceptSpinner.classList.remove('hidden'); // Show spinner
+        explainConceptButton.disabled = true; // Disable button
+
+        try {
+            let chatHistory = [];
+            const prompt = `Explain the concept of "${concept}" in the context of radar systems and signal processing, in a concise and easy-to-understand manner. Focus on its relevance to detection probability.`;
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+            const payload = { contents: chatHistory };
+            const apiKey = ""; // If you want to use models other than gemini-2.0-flash or imagen-3.0-generate-002, provide an API key here. Otherwise, leave this as-is.
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+            if (result.candidates && result.candidates.length > 0 &&
+                result.candidates[0].content && result.candidates[0].content.parts &&
+                result.candidates[0].content.parts.length > 0) {
+                const text = result.candidates[0].content.parts[0].text;
+                conceptExplanationOutput.textContent = text;
+            } else {
+                conceptExplanationOutput.textContent = "Could not generate explanation. Please try again or refine your query.";
+                console.error("Gemini API response structure unexpected:", result);
+            }
+        } catch (error) {
+            conceptExplanationOutput.textContent = "An error occurred while fetching the explanation. Please check your network connection or try again.";
+            console.error("Error fetching explanation:", error);
+        } finally {
+            explainConceptSpinner.classList.add('hidden'); // Hide spinner
+            explainConceptButton.disabled = false; // Enable button
+        }
+    });
+
+    // Gemini API Integration - Scenario Generator
+    const scenarioM = document.getElementById('scenario-m');
+    const scenarioN = document.getElementById('scenario-n');
+    const scenarioSnr = document.getElementById('scenario-snr');
+    const scenarioClutter = document.getElementById('scenario-clutter');
+    const generateScenarioButton = document.getElementById('generate-scenario-button');
+    const scenarioOutput = document.getElementById('scenario-output');
+    const generateScenarioSpinner = document.getElementById('generate-scenario-spinner');
+
+    generateScenarioButton.addEventListener('click', async () => {
+        const m = scenarioM.value;
+        const n = scenarioN.value;
+        const snr = scenarioSnr.value;
+        const clutterType = scenarioClutter.value;
+
+        if (!m || !n || !snr || !clutterType) {
+            scenarioOutput.textContent = "Please fill in all scenario parameters.";
+            return;
+        }
+
+        scenarioOutput.textContent = ""; // Clear previous output
+        generateScenarioSpinner.classList.remove('hidden'); // Show spinner
+        generateScenarioButton.disabled = true; // Disable button
+
+        try {
+            let chatHistory = [];
+            const prompt = `Describe a realistic MIMO radar target detection scenario given the following parameters: Transmit Antennas (M): ${m}, Receive Antennas (N): ${n}, Signal-to-Noise Ratio (SNR): ${snr} dB, Clutter Type: ${clutterType}. Explain how these parameters would likely affect the probability of detection (P_D) and false alarm rate (P_FA) in this scenario. Keep the explanation concise and informative.`;
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+            const payload = { contents: chatHistory };
+            const apiKey = ""; // If you want to use models other than gemini-2.0-flash or imagen-3.0-generate-002, provide an API key here. Otherwise, leave this as-is.
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+            if (result.candidates && result.candidates.length > 0 &&
+                result.candidates[0].content && result.candidates[0].content.parts &&
+                result.candidates[0].content.parts.length > 0) {
+                const text = result.candidates[0].content.parts[0].text;
+                scenarioOutput.textContent = text;
+            } else {
+                scenarioOutput.textContent = "Could not generate scenario. Please try again or refine your query.";
+                console.error("Gemini API response structure unexpected:", result);
+            }
+        } catch (error) {
+            scenarioOutput.textContent = "An error occurred while generating the scenario. Please check your network connection or try again.";
+            console.error("Error generating scenario:", error);
+        } finally {
+            generateScenarioSpinner.classList.add('hidden'); // Hide spinner
+            generateScenarioButton.disabled = false; // Enable button
+        }
+    });
+});
+</script>
+</body>
+</html>
